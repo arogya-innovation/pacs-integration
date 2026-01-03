@@ -27,8 +27,7 @@ import org.slf4j.LoggerFactory;
 
 @Component
 public class HL7Service {
-    private static final Logger logger = LoggerFactory.getLogger(PatientIdentificationMapperImpl.class);
-
+    private static final Logger logger = LoggerFactory.getLogger(HL7Service.class);
 
     @Autowired
     private OrderRepository orderRepository;

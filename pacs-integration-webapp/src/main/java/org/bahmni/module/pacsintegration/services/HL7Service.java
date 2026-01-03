@@ -151,22 +151,34 @@ public class HL7Service {
         orc.getOrderingProvider(0).getIDNumber().setValue(openMRSProvider.getUuid());
     }
 
-    private void addPatientDetails(ORM_O01 message, OpenMRSPatient openMRSPatient) throws HL7Exception {
-        // handle the patient PID component
+    private void addPatientDetails(ORM_O01 message, OpenMRSPatient openMRSPatient) throws DataTypeException {
+        logger.info("=== ENTERING addPatientDetails - THIS IS A TEST ===");
         ORM_O01_PATIENT patient = message.getPATIENT();
         PID pid = patient.getPID();
+        
+        // PID-3: Patient Identifier
         pid.getPatientIdentifierList(0).getIDNumber().setValue(openMRSPatient.getPatientId());
-        pid.getPatientIdentifierList(0).getIdentifierTypeCode().setValue(patientIdentifierTypeCode);
-        pid.getPatientIdentifierList(0).getAssigningAuthority().parse(PATIENT_IDENTIFIER_AUTHORITY);
-
-        pid.getPatientName(0).getGivenName().setValue(openMRSPatient.getGivenName());
-        pid.getPatientName(0).getFamilyName().getSurname().setValue(openMRSPatient.getFamilyName());
+        pid.getPatientIdentifierList(0).getIdentifierTypeCode().setValue("MR");
+        pid.getPatientIdentifierList(0).getAssigningAuthority().getNamespaceID().setValue("Bahmni EMR");
+        
+        // PID-5: Patient Name - THIS IS THE FIX
+        String givenName = openMRSPatient.getGivenName() != null ? openMRSPatient.getGivenName() : "UNKNOWN";
+        String familyName = openMRSPatient.getFamilyName() != null ? openMRSPatient.getFamilyName() : "UNKNOWN";
+        
+        pid.getPatientName(0).getFamilyName().getSurname().setValue(familyName);
+        pid.getPatientName(0).getGivenName().setValue(givenName);
+        
+        // PID-7: Date of Birth
         pid.getDateTimeOfBirth().getTime().setValue(openMRSPatient.getBirthDate());
+        
+        // PID-8: Gender
         pid.getAdministrativeSex().setValue(openMRSPatient.getGender());
-
-        message.getORDER().getORDER_DETAIL().getOBR().getPlannedPatientTransportComment(0).getText().setValue(openMRSPatient.getGivenName() + "," + openMRSPatient.getFamilyName());
-
+        
+        // OBR comment
+        message.getORDER().getORDER_DETAIL().getOBR().getPlannedPatientTransportComment(0).getText()
+            .setValue(givenName + "," + familyName);
     }
+
 
     private static DateFormat getHl7DateFormat() {
         return new SimpleDateFormat("yyyyMMddHH");
